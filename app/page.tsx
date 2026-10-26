@@ -1,7 +1,9 @@
+import SearchSection from "./components/SearchSection";
+
 export default function page() {
   return (
     <div>
-      page
+      <SearchSection/>
     </div>
   );
 }
