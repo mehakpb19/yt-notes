@@ -5,7 +5,7 @@ import { useGlobal } from "../context/context";
 import { getYouTubeId } from "./Youtubepalyer";
 
 export default function SearchSection() {
-  const { ytUrl, setYtUrl } = useGlobal();
+  const { ytUrl, setYtUrl ,setId } = useGlobal();
   const [error, setError] = useState<string>("");
   return (
     <div className="relative flex items-center w-full max-w-2xl mx-auto group">
@@ -53,11 +53,14 @@ export default function SearchSection() {
       <button
         type="button"
         onClick={async () => {
+          setYtUrl('')
           const isFormateValid = getYouTubeId(ytUrl);
+          setId(isFormateValid)
           if (isFormateValid === "") {
             setError("no valid url");
             return;
           }
+
           
         }}
         className="absolute right-1.5 px-6 py-2.5 rounded-xl font-semibold bg-linear-to-r from-[#77A1D3] via-[#79CBCA] to-[#77A1D3] bg-size-[200%_auto] hover:bg-right shadow-[0_0_15px_rgba(120,194,204,0.5)] hover:shadow-[0_0_25px_rgba(120,194,204,0.8)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-400 cursor-pointer"

@@ -9,6 +9,8 @@ interface GlobalContextType {
   setYtUrl: (ytUrl: string) => void;
   timestamp: number;
   setTimestamp: (timestamp: number) => void;
+  id:string|null;
+  setId:(id:string|null)=>void;
 }
 
 // 2. Create the context with a default undefined value
@@ -18,10 +20,11 @@ const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
 export function GlobalProvider({ children }: { children: ReactNode }) {
   const [ytUrl, setYtUrl] = useState<string>("");
   const [timestamp, setTimestamp] = useState<number>(0);
+  const [id, setId] = useState<string|null>('');
 
   return (
     <GlobalContext.Provider
-      value={{ ytUrl, setYtUrl, timestamp, setTimestamp }}
+      value={{ ytUrl, setYtUrl, timestamp, setTimestamp ,id,setId}}
     >
       {children}
     </GlobalContext.Provider>
