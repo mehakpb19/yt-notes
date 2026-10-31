@@ -1,14 +1,64 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useGlobal } from "../context/context";
-import { getYouTubeId } from "./Youtubepalyer";
+import { getYouTubeId } from "../functions/getYouTubeId";
+import { generateNotes } from "../hooks/useGetnotes";
+import initSession from "../functions/SestionID";
+import { listenToProduct, writeUserData } from "../functions/FirebaseActions";
 
 export default function SearchSection() {
-  const { ytUrl, setYtUrl ,setId } = useGlobal();
+  const {
+    ytUrl,
+    setYtUrl,
+    setId,
+    setSessionKey,
+    setData,
+    setIsloading,
+    sessionKey,
+  } = useGlobal();
+
   const [error, setError] = useState<string>("");
+
+  const getnotesbtnclick = async () => {
+    const currentUrl = ytUrl.trim();
+    if (!currentUrl) {
+      setError("Please enter a YouTube URL");
+      return;
+    }
+
+    const videoId = getYouTubeId(currentUrl);
+    if (!videoId) {
+      setError("No valid URL");
+      return;
+    }
+
+    setError("");
+    setId(videoId);
+    setYtUrl("");
+
+    try {
+      console.log("start");
+      setIsloading(true);
+
+      const notesData = await generateNotes(currentUrl);
+      if (!notesData) {
+        setError("Failed to generate notes");
+        return;
+      }
+      setData(notesData);
+      await writeUserData(sessionKey, notesData, videoId);
+      console.log("END");
+    } catch (err) {
+      console.error("Error generating notes:", err);
+      setError("Something went wrong while fetching notes");
+    } finally {
+      setIsloading(false);
+    }
+  };
+
   return (
-    <div className="relative flex items-center w-full max-w-2xl mx-auto group">
+    <div className="pt-5 relative flex items-center w-full max-w-2xl mx-auto group">
       <div className="absolute left-4 text-[#79CBCA]/80 pointer-events-none transition-colors duration-300 group-focus-within:text-[#79CBCA]">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -24,7 +74,10 @@ export default function SearchSection() {
         <input
           type="text"
           value={ytUrl}
-          onChange={(e) => setYtUrl(e.target.value)}
+          onChange={(e) => {
+            setYtUrl(e.target.value);
+            if (error) setError("");
+          }}
           placeholder="Paste YouTube URL here..."
           className="w-full py-3.5 pl-12 pr-36 text-white placeholder-slate-300/60 bg-linear-to-r from-[#354961] to-[#4a6f9c] bg-origin-border rounded-2xl border-none outline-none ring-2 ring-transparent transition-all duration-500 focus:ring-[#79C7CB] focus:shadow-[0_0_20px_rgba(120,194,204,0.4)]"
         />
@@ -52,17 +105,7 @@ export default function SearchSection() {
       </div>
       <button
         type="button"
-        onClick={async () => {
-          setYtUrl('')
-          const isFormateValid = getYouTubeId(ytUrl);
-          setId(isFormateValid)
-          if (isFormateValid === "") {
-            setError("no valid url");
-            return;
-          }
-
-          
-        }}
+        onClick={getnotesbtnclick}
         className="absolute right-1.5 px-6 py-2.5 rounded-xl font-semibold bg-linear-to-r from-[#77A1D3] via-[#79CBCA] to-[#77A1D3] bg-size-[200%_auto] hover:bg-right shadow-[0_0_15px_rgba(120,194,204,0.5)] hover:shadow-[0_0_25px_rgba(120,194,204,0.8)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-400 cursor-pointer"
       >
         Get Notes

@@ -28,7 +28,9 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     ".next/dev/types/**/*.ts",
-    "**/*.mts"
-, "app/hooks/useGetnotes.ts"  ],
+    "**/*.mts",
+    "app/hooks/useGetnotes.ts",
+    "app/functions/toggleislodaing.tsx"
+  ],
   "exclude": ["node_modules"]
 }

@@ -1,49 +1,94 @@
 "use client";
-import React from "react";
-import YouTube, { YouTubePlayer } from "react-youtube";
+import React, { useEffect, useRef } from "react";
+import YouTube, { YouTubeEvent, YouTubePlayer } from "react-youtube";
 import { useGlobal } from "../context/context";
+import { updateVideoTime } from "../functions/FirebaseActions";
 
-export const getYouTubeId = (url: string) => {
-  if (!url) return null;
-
-  const regExp =
-    /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-  const match = url.match(regExp);
-  
-  return match && match[2].length === 11 ? match[2] : null;
+const OPTS = {
+  height: "390",
+  width: "640",
+  playerVars: {
+    autoplay: 0,
+  },
 };
 
 export default function VideoPlayer() {
-  const { ytUrl, setYtUrl, id, setId } = useGlobal();
+  const { id, timestamp, seekTrigger, setTime, sessionKey } = useGlobal();
+  const playerRef = useRef<YouTubePlayer | null>(null);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  const opts = {
-    height: "390",
-    width: "640",
-    playerVars: {
-      autoplay: 0,
-    },
+  // 1. Seek the YouTube video whenever a section is clicked in Notes (or synced from DB)
+  useEffect(() => {
+    if (playerRef.current && seekTrigger > 0) {
+      playerRef.current.seekTo(timestamp, true);
+      playerRef.current.playVideo();
+    }
+  }, [timestamp, seekTrigger]);
+
+  // 2. Clean up interval on unmount
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, []);
+
+  const stopTracking = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
   };
 
-  if (!id) {
-    if(id ===''){
-      return(
-        <div className="error-message w-160 h-97.5 bg-black p-2.5">
-      </div>
-      )
+  const startTracking = () => {
+    stopTracking();
+    intervalRef.current = setInterval(async () => {
+      if (playerRef.current) {
+        const currentSeconds = Math.floor(
+          await playerRef.current.getCurrentTime()
+        );
+        setTime(currentSeconds);
+
+        // Sync current playback time to Firebase
+        if (sessionKey) {
+          updateVideoTime(sessionKey, currentSeconds);
+        }
+      }
+    }, 1000);
+  };
+
+  const handleReady = (event: YouTubeEvent) => {
+    playerRef.current = event.target;
+  };
+
+  const handleStateChange = (event: YouTubeEvent<number>) => {
+    // YouTube PlayerState: 1 = PLAYING
+    if (event.data === 1) {
+      startTracking();
+    } else {
+      stopTracking();
     }
+  };
+
+  if (id === null) {
     return (
-      <div className="error-message w-160 h-97.5 bg-black  text-red-600 p-2.5 flex justify-center items-center">
-        <p className="translate-y-5 transition-all duration-700">
-          
-          ⚠️ Invalid or unsupported YouTube URL.
-          </p>
+      <div className="w-160 h-97.5 bg-black p-2.5">
+        <p className="text-yellow-200 w-full h-full flex justify-center items-center font-medium">
+          Enter your URL to generate notes
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="video-container">
-      <YouTube videoId={id} opts={opts} />
+    <div className="video-container w-160 h-97.5 bg-black">
+      <YouTube
+        videoId={id}
+        opts={OPTS}
+        onReady={handleReady}
+        onStateChange={handleStateChange}
+      />
     </div>
   );
 }
