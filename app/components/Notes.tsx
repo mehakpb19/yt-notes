@@ -74,7 +74,6 @@ export default function Notes() {
       const end = next ? parseTimestampToSeconds(next.timestamp) : Infinity;
       return currentSeconds >= start && currentSeconds < end;
     });
-
     if (activeIdx !== -1 && activeIdx !== lastActiveIndexRef.current) {
       lastActiveIndexRef.current = activeIdx;
       sectionRefs.current[activeIdx]?.scrollIntoView({
@@ -106,7 +105,6 @@ export default function Notes() {
       updateVideoTime(sessionKey, startSeconds);
     }
 
-    // 3. Expand the section if it was collapsed
     setCollapsedSections((prev) => prev.filter((item) => item !== index));
   };
 
