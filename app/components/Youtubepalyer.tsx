@@ -5,8 +5,8 @@ import { useGlobal } from "../context/context";
 import { updateVideoTime } from "../functions/FirebaseActions";
 
 const OPTS = {
-  height: "390",
-  width: "640",
+  height: "100%",
+  width: "100%",
   playerVars: {
     autoplay: 0,
   },
@@ -14,10 +14,10 @@ const OPTS = {
 
 export default function VideoPlayer() {
   const { id, timestamp, seekTrigger, setTime, sessionKey } = useGlobal();
-  const playerRef = useRef<YouTubePlayer | null>(null);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Seek the YouTube video whenever a section is clicked in Notes (or synced from DB)
+  const playerRef = useRef<YouTubePlayer | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   useEffect(() => {
     if (playerRef.current && seekTrigger > 0) {
       playerRef.current.seekTo(timestamp, true);
@@ -25,7 +25,6 @@ export default function VideoPlayer() {
     }
   }, [timestamp, seekTrigger]);
 
-  // 2. Clean up interval on unmount
   useEffect(() => {
     return () => {
       if (intervalRef.current) {
@@ -50,7 +49,6 @@ export default function VideoPlayer() {
         );
         setTime(currentSeconds);
 
-        // Sync current playback time to Firebase
         if (sessionKey) {
           updateVideoTime(sessionKey, currentSeconds);
         }
@@ -63,7 +61,6 @@ export default function VideoPlayer() {
   };
 
   const handleStateChange = (event: YouTubeEvent<number>) => {
-    // YouTube PlayerState: 1 = PLAYING
     if (event.data === 1) {
       startTracking();
     } else {
@@ -73,8 +70,8 @@ export default function VideoPlayer() {
 
   if (id === null) {
     return (
-      <div className="w-160 h-97.5 bg-black p-2.5">
-        <p className="text-yellow-200 w-full h-full flex justify-center items-center font-medium">
+      <div className="w-full aspect-video bg-black p-4 rounded-xl sm:rounded-2xl lg:rounded-3xl border border-slate-800/80 shadow-xl">
+        <p className="text-yellow-200 w-full h-full flex justify-center items-center text-center text-sm sm:text-base font-medium px-2">
           Enter your URL to generate notes
         </p>
       </div>
@@ -82,12 +79,14 @@ export default function VideoPlayer() {
   }
 
   return (
-    <div className="video-container w-160 h-97.5 bg-black">
+    <div className="video-container w-full h-fit aspect-video bg-black overflow-hidden rounded-xl sm:rounded-2xl lg:rounded-3xl shadow-xl border border-slate-800/80">
       <YouTube
         videoId={id}
         opts={OPTS}
         onReady={handleReady}
         onStateChange={handleStateChange}
+        className="w-full h-full"
+        iframeClassName="w-full h-full"
       />
     </div>
   );

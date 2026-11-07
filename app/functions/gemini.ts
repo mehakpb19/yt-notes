@@ -1,17 +1,18 @@
-"use client"
+"use client";
+
 import { GoogleGenAI } from "@google/genai";
 
-// Initialize the client. It automatically picks up the GEMINI_API_KEY environment variable.
 const ai = new GoogleGenAI({});
 
 async function generateText() {
   try {
-    const interaction = await ai.create({
-      model: "gemini-3.8-flash", // Use "gemini-3.8-flash" for fast text generation
-      input: "Explain asynchronous JavaScript in one short sentence.",
+    const response = await ai.models.generateContent({
+      model: "gemini-3.8-flash", // Fast text generation model
+      contents: "Explain asynchronous JavaScript in one short sentence.",
     });
 
-    return "heeeeeeeeeee";
+    console.log(response.text);
+    return response.text;
   } catch (error) {
     console.error("Error communicating with Gemini API:", error);
   }
