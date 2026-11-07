@@ -201,7 +201,7 @@ export default function Notes() {
                         </span>
 
                         <h3
-                          className={`text-base sm:text-lg font-semibold leading-snug break-words transition-colors ${
+                          className={`text-base sm:text-lg font-semibold leading-snug warp-words transition-colors ${
                             isCurrentActive ? "text-cyan-300" : "text-white"
                           }`}
                         >
